@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Stream videos to multiple platforms using ffmpeg and the tee muxer
 stream_videos() {
