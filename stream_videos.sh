@@ -8,14 +8,18 @@ stream_videos() {
     local VIDEO_DIR="${VIDEO_DIR}"
     local TWITCH_STREAM_KEY="${TWITCH_STREAM_KEY}"
     local YOUTUBE_API_KEY="${YOUTUBE_API_KEY}"
-    local KICK_STREAM_URL="${KICK_STREAM_URL}"  # Kick stream URL
-    local KICK_STREAM_KEY="${KICK_STREAM_KEY}"  # Kick stream key
+    local KICK_STREAM_URL="${KICK_STREAM_URL}"
+    local KICK_STREAM_KEY="${KICK_STREAM_KEY}"
+    local OWNCAST_STREAM_KEY="${OWNCAST_STREAM_KEY}"
+    local OWNCAST_STREAM_URL="${OWNCAST_STREAM_URL}"
 
     echo "Video directory: ${VIDEO_DIR}"
     echo "Twitch Stream Key: ${TWITCH_STREAM_KEY}"
     echo "YouTube API Key: ${YOUTUBE_API_KEY}"
     echo "Kick Stream URL: ${KICK_STREAM_URL}"
     echo "Kick Stream Key: ${KICK_STREAM_KEY}"
+    echo "OwnCast Stream Key: ${OWNCAST_STREAM_KEY}"
+    echo "OwnCast Stream URL: ${OWNCAST_STREAM_URL}"
 
     # Loop through all MP4 files in the video directory
     find "${VIDEO_DIR}" -type f \( -name '*.mp4' -or -name '*.mkv' \) | while read -r file; do
@@ -46,8 +50,17 @@ stream_videos() {
             STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}:443/app/${KICK_STREAM_KEY}")
         fi
 
+        # Configure stream for OwnCast if both URL and key are provided
+        if [ -n "${OWNCAST_STREAM_URL}" ] && [ -n "${OWNCAST_STREAM_KEY}" ]; then
+            echo "Configuring stream for OwnCast"
+            STREAMS+=("[f=flv:onfail=ignore]rtmp://${OWNCAST_STREAM_URL}/live/${OWNCAST_STREAM_KEY}")
+        fi
+
         # Combine the stream configurations into a single string
-        local TEE_TARGETS=$(IFS='|'; echo "${STREAMS[*]}")
+        local TEE_TARGETS=$(
+            IFS='|'
+            echo "${STREAMS[*]}"
+        )
 
         # Check if there are any configured streams and construct the final ffmpeg command
         if [ -n "${TEE_TARGETS}" ]; then
@@ -82,6 +95,3 @@ else
     echo "No Videos Found. Exiting..."
     exit 1
 fi
-
-
-
